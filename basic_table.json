@@ -1,0 +1,64 @@
+{
+    "migration-table": [
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "13"
+                    },
+                    "value": {
+                        "S": "thirteen"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "11"
+                    },
+                    "value": {
+                        "S": "Eleven"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "12"
+                    },
+                    "value": {
+                        "S": "Twelve"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "14"
+                    },
+                    "value": {
+                        "S": "fourteen"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "15"
+                    },
+                    "value": {
+                        "S": "fifteen"
+                    }
+                }
+            }
+        }
+    ]
+}
