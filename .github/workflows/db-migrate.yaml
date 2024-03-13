@@ -33,6 +33,7 @@ jobs:
 
       - name: Export data from source DynamoDB table
         run: |
+          aws dynamodb list-tables --region "us-west-2"
           aws dynamodb scan --table-name "migration-table" --region "us-west-2" > data.json
 
       - name: Import data into destination DynamoDB table
