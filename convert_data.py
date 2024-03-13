@@ -28,5 +28,6 @@ with open('data.json') as f:
 # Convert data to DynamoDB format
 dynamodb_data = convert_to_dynamodb_format(input_data)
 
-# Print the DynamoDB formatted data
-print(json.dumps({'migration-table': dynamodb_data}, indent=4))
+# Write the DynamoDB formatted data to batch_write_data.json file
+with open('batch_write_data.json', 'w') as outfile:
+    json.dump({'migration-table': dynamodb_data}, outfile, indent=4)
