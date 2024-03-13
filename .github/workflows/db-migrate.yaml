@@ -41,18 +41,17 @@ jobs:
           python convert_data.py
           cat batch_write_data.json
 
+      - name: Upload data in batches
+        run: |
+          input_file="batch_write_data.json"
+          total_lines=$(wc -l < "$input_file")
+          lines_per_batch=10
+          for ((i=1; i<=$total_lines; i+=$lines_per_batch)); do
+            sed -n "$i,$((i+$lines_per_batch-1))p" "$input_file" > batch.json
+            aws dynamodb batch-write-item --request-items file://batch.json --region "us-west-2" &
+          done
+          wait # Wait for all background processes to finish
+
       - name: Import data into destination DynamoDB table
         run: |
-          # Read the JSON data into a variable
-          batch_data=$(cat batch_write_data.json)
-
-          # Split the data into multiple chunks (each containing 10 items)
-          chunk_size=10
-          num_chunks=$(((${#batch_data} + $chunk_size - 1) / $chunk_size))
-          for ((i=0; i<$num_chunks; i++)); do
-            start=$((i * chunk_size))
-            chunk="${batch_data:$start:$chunk_size}"
-            
-            # Run the batch write operation for the current chunk asynchronously
-            aws dynamodb batch-write-item --request-items "${chunk}" --region "us-west-2" &
-          done
+          echo "All batches uploaded successfully."
