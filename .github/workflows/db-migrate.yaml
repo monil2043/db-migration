@@ -54,5 +54,5 @@ jobs:
             chunk="${batch_data:$start:$chunk_size}"
             
             # Run the batch write operation for the current chunk asynchronously
-            (aws dynamodb batch-write-item --request-items "${chunk}" --region "us-west-2" &)
+            aws dynamodb batch-write-item --request-items "${chunk}" --region "us-west-2" &
           done
