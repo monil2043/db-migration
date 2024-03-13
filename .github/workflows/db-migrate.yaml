@@ -39,6 +39,10 @@ jobs:
           aws dynamodb scan --table-name "migration-table" --region "us-west-2" > data.json
           cat data.json
 
+      - name: Convert JSON data
+        run: |
+          python convert_data.py
+
       - name: Import data into destination DynamoDB table
         run: |
-          aws dynamodb batch-write-item --request-items file://data.json --region "us-west-2"
+          aws dynamodb batch-write-item --request-items file://batch_write_data.json --region "us-west-2"
