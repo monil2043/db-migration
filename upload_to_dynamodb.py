@@ -16,7 +16,7 @@ def upload_to_dynamodb(json_file_path, table_name, region_name):
             print(f"Failed to upload item: {item['PutRequest']['Item']}, Error: {e}")
 
 if __name__ == "__main__":
-    json_file_path = "batch_write_data.json"  # Replace with the path to your JSON file
+    json_file_path = "write_data.json"  # Replace with the path to your JSON file
     table_name = "mig-dev03-connect-p-ssp-extensions"  # Replace with your DynamoDB table name
     region_name = "us-west-2"  # Replace with your desired AWS region
     

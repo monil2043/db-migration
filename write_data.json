@@ -1,0 +1,34 @@
+{
+    "mig-dev03-connect-p-ssp-extensions": [
+        {
+            "PutRequest": {
+                "Item": {
+                    "Extension": {
+                        "S": "29866"
+                    },
+                    "ExtensionType": {
+                        "S": "agent"
+                    },
+                    "ExtensionTypeValue": {
+                        "S": "agent2"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "Extension": {
+                        "S": "298662"
+                    },
+                    "ExtensionType": {
+                        "S": "agent11"
+                    },
+                    "ExtensionTypeValue": {
+                        "S": "agent21"
+                    }
+                }
+            }
+        }
+    ]
+}
