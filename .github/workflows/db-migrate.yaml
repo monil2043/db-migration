@@ -36,7 +36,7 @@ jobs:
           echo "Secret Access Key: $AWS_SECRET_ACCESS_KEY"
           echo "Session Token: $AWS_SESSION_TOKEN"
           aws dynamodb list-tables --region "us-west-2"
-          aws dynamodb scan --table-name "mig-dev03-connect-p-ssp-extensions" --region "us-west-2" > data.json
+          aws dynamodb scan --table-name "mig-dev03-connect-p-ssp-extensions" --region "us-west-2" --limit 10 > data.json
           cat data.json
           python convert_data.py
           cat batch_write_data.json
