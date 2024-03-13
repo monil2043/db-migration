@@ -36,11 +36,23 @@ jobs:
           echo "Secret Access Key: $AWS_SECRET_ACCESS_KEY"
           echo "Session Token: $AWS_SESSION_TOKEN"
           aws dynamodb list-tables --region "us-west-2"
-          aws dynamodb scan --table-name "mig-dev03-connect-p-ssp-extensions" --region "us-west-2" --limit 10 > data.json
+          aws dynamodb scan --table-name "mig-dev03-connect-p-ssp-extensions" --region "us-west-2" > data.json
           cat data.json
           python convert_data.py
           cat batch_write_data.json
 
       - name: Import data into destination DynamoDB table
         run: |
-          aws dynamodb batch-write-item --request-items file://batch_write_data.json --region "us-west-2"
+          # Read the JSON data into a variable
+          batch_data=$(cat batch_write_data.json)
+
+          # Split the data into multiple chunks (each containing 10 items)
+          chunk_size=10
+          num_chunks=$(((${#batch_data} + $chunk_size - 1) / $chunk_size))
+          for ((i=0; i<$num_chunks; i++)); do
+            start=$((i * chunk_size))
+            chunk="${batch_data:$start:$chunk_size}"
+            
+            # Run the batch write operation for the current chunk asynchronously
+            (aws dynamodb batch-write-item --request-items "${chunk}" --region "us-west-2" &)
+          done
