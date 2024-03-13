@@ -41,19 +41,6 @@ jobs:
           python convert_data.py
           cat batch_write_data.json
 
-      - name: Split JSON into batches and upload to DynamoDB
+      - name: Import data
         run: |
-          input_file="batch_write_data.json"
-          total_objects=$(jq '.["mig-dev03-connect-p-ssp-extensions"] | length' "$input_file")
-          batch_size=10
-          for ((i=0; i<$total_objects; i+=$batch_size)); do
-              end=$((i+batch_size-1))
-              jq --arg i "$i" --arg end "$end" '.["mig-dev03-connect-p-ssp-extensions"][$i:$end]' "$input_file" > batch_$i.json
-              aws dynamodb batch-write-item --request-items file://batch_$i.json --region "us-west-2" &
-          done
-          wait # Wait for all background processes to finish
-
-
-      - name: Import data into destination DynamoDB table
-        run: |
-          echo "All batches uploaded successfully."
+          aws dynamodb batch-write-item --request-items file://batch_write_data.json --region "us-west-2"
