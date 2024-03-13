@@ -47,11 +47,12 @@ jobs:
           total_objects=$(jq length "$input_file")
           batch_size=10
           for ((i=0; i<$total_objects; i+=$batch_size)); do
-            end=$((i+batch_size-1))
-            jq ".mig-dev03-connect-p-ssp-extensions[$i:$end]" "$input_file" > batch_$i.json
-            aws dynamodb batch-write-item --request-items file://batch_$i.json --region "us-west-2" &
+              end=$((i+batch_size-1))
+              jq ".[$i:$end]" "$input_file" > batch_$i.json
+              aws dynamodb batch-write-item --request-items file://batch_$i.json --region "us-west-2" &
           done
           wait # Wait for all background processes to finish
+
 
       - name: Import data into destination DynamoDB table
         run: |
