@@ -38,8 +38,6 @@ jobs:
           table_name=$(aws dynamodb describe-table --table-name "mig-dev03-connect-p-ssp-extensions" --region "us-west-2" | jq -r '.Table.TableName')
           aws dynamodb scan --table-name "mig-dev03-connect-p-ssp-extensions" --region "us-west-2" > "$table_name.json"
           cat "$table_name.json"
-          python convert_data.py
-          cat batch_write_data.json
 
       - name: Add table data JSON to GitHub repository
         run: |
