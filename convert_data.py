@@ -38,4 +38,4 @@ dynamodb_data = convert_to_dynamodb_format(input_data)
 
 # Write the DynamoDB formatted data to batch_write_data.json file
 with open('batch_write_data.json', 'w') as outfile:
-    json.dump({'test-migration-extension-table': dynamodb_data}, outfile, indent=4)
+    json.dump({'mig-dev03-connect-p-ssp-extensions': dynamodb_data}, outfile, indent=4)
