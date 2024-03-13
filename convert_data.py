@@ -1,36 +1,37 @@
 import json
 
-# Read the JSON data from data.json
-with open('data.json', 'r') as f:
-    data = json.load(f)
+def filter_empty_values(data):
+    filtered_data = {}
+    for key, value in data.items():
+        if isinstance(value, dict):
+            filtered_value = filter_empty_values(value)
+            if filtered_value:  # Only add non-empty dictionaries
+                filtered_data[key] = filtered_value
+        elif value and not value.isspace():  # Check if value is not null or empty
+            filtered_data[key] = value
+    return filtered_data
 
-# Extract items from the JSON data
-items = data['Items']
-
-# Transform items into the expected format
-request_items = {}
-table_name = 'migration-table'
-request_items[table_name] = []
-
-for item in items:
-    put_request = {
-        'PutRequest': {
-            'Item': {}
+def convert_to_dynamodb_format(data):
+    dynamodb_data = []
+    for item in data:
+        filtered_item = filter_empty_values(item)
+        dynamodb_item = {
+            "PutRequest": {
+                "Item": {
+                    key: {"S": str(value)}  # Convert all values to strings
+                    for key, value in filtered_item.items()
+                }
+            }
         }
-    }
+        dynamodb_data.append(dynamodb_item)
+    return dynamodb_data
 
-    for key, value in item.items():
-        attribute_name = list(value.keys())[0]  # Extract the attribute name
-        attribute_value = list(value.values())[0]  # Extract the attribute value
-        put_request['PutRequest']['Item'][key] = {attribute_name: attribute_value}
+# Load input data from JSON file
+with open('data.json') as f:
+    input_data = json.load(f)
 
-    request_items[table_name].append(put_request)
+# Convert data to DynamoDB format
+dynamodb_data = convert_to_dynamodb_format(input_data)
 
-# Generate the final JSON data
-final_data = json.dumps(request_items, indent=4)
-
-# Write the final JSON data to a new file
-with open('batch_write_data.json', 'w') as f:
-    f.write(final_data)
-
-print("Conversion completed. Output saved to batch_write_data.json")
+# Print the DynamoDB formatted data
+print(json.dumps({"migration-table": dynamodb_data}, indent=4))
