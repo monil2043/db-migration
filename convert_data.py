@@ -16,9 +16,15 @@ def convert_to_dynamodb_format(data):
     for item in data['Items']:
         dynamodb_item = transform_item(item)
         if dynamodb_item:  # Only add if there are non-empty values
+            # Reorder the attributes
+            reordered_item = {
+                'Extension': dynamodb_item['Extension'],
+                'ExtensionType': dynamodb_item['ExtensionType'],
+                'Data': dynamodb_item.get('Data', {})
+            }
             dynamodb_data.append({
                 'PutRequest': {
-                    'Item': dynamodb_item
+                    'Item': reordered_item
                 }
             })
     return dynamodb_data
