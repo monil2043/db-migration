@@ -44,11 +44,12 @@ jobs:
       - name: Upload data in batches
         run: |
           input_file="batch_write_data.json"
-          total_lines=$(wc -l < "$input_file")
-          lines_per_batch=10
-          for ((i=1; i<=$total_lines; i+=$lines_per_batch)); do
-            sed -n "$i,$((i+$lines_per_batch-1))p" "$input_file" > batch.json
-            aws dynamodb batch-write-item --request-items file://batch.json --region "us-west-2" &
+          total_objects=$(jq length "$input_file")
+          batch_size=10
+          for ((i=0; i<$total_objects; i+=$batch_size)); do
+            end=$((i+batch_size-1))
+            jq ".migration-table[$i:$end]" "$input_file" > batch_$i.json
+            aws dynamodb batch-write-item --request-items file://batch_$i.json --region "us-west-2" &
           done
           wait # Wait for all background processes to finish
 
