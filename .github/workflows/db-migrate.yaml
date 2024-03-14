@@ -35,11 +35,8 @@ jobs:
         run: |
           for table_name in $(cat table_names.json | jq -r '.table_names | .[]'); do
             echo "Scanning table: $table_name"
-            if aws dynamodb scan --table-name "$table_name" --region "us-west-2" > "table_data/${table_name}.json"; then
-              echo "Table data saved: table_data/${table_name}.json"
-            else
-              echo "Error: Failed to scan table $table_name"
-            fi
+            aws dynamodb scan --table-name "$table_name" --region "us-west-2" | jq -r '.Items' > "table_data/${table_name}.json"
+            echo "Table data saved: table_data/${table_name}.json"
           done
 
       - name: List saved table data
