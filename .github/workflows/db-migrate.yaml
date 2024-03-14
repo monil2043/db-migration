@@ -22,41 +22,29 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region "us-west-2"
 
-      - name: Assume IAM role in source account
+      - name: Read table names from JSON file
+        id: read_table_names
         run: |
-          sts_output=$(aws sts assume-role --role-arn arn:aws:iam::822016532063:role/extension-migration-role --role-session-name "AssumeRoleSession")
-          echo "$sts_output" > assumed-role.json
-          export AWS_ACCESS_KEY_ID=$(jq -r '.Credentials.AccessKeyId' assumed-role.json)
-          export AWS_SECRET_ACCESS_KEY=$(jq -r '.Credentials.SecretAccessKey' assumed-role.json)
-          export AWS_SESSION_TOKEN=$(jq -r '.Credentials.SessionToken' assumed-role.json)
-          echo "Temporary credentials:"
-          echo "Access Key ID: $AWS_ACCESS_KEY_ID"
-          echo "Secret Access Key: $AWS_SECRET_ACCESS_KEY"
-          echo "Session Token: $AWS_SESSION_TOKEN"
-          aws dynamodb list-tables --region "us-west-2" | jq -r '.TableNames | .[]' > table_names.txt
+          table_names=$(jq -r '.tableNames | .[]' table_names.json)
+          echo "::set-output name=table_names::$table_names"
+
+      - name: Create directory for table data
+        run: |
+          mkdir -p table_data
 
       - name: Scan and save table data
         run: |
-            while IFS= read -r table_name; do
-              echo "Scanning table: $table_name"
-              if aws dynamodb scan --table-name "$table_name" --region "us-west-2" > "${table_name}.json"; then
-                echo "Table data saved: ${table_name}.json"
-              else
-                echo "Error: Failed to scan table $table_name"
-              fi
-            done < table_names.txt
-        shell: /usr/bin/bash -e {0}
-        
-
-      - name: Create artifacts
-        run: |
-          for file in *.json; do
-            table_name=$(echo "$file" | cut -d '.' -f 1)
-            cat "$file" > "${table_name}_table_data.json"
+          for table_name in "${{ steps.read_table_names.outputs.table_names }}"; do
+            echo "Scanning table: $table_name"
+            if aws dynamodb scan --table-name "$table_name" --region "us-west-2" > "table_data/${table_name}.json"; then
+              echo "Table data saved: table_data/${table_name}.json"
+            else
+              echo "Error: Failed to scan table $table_name"
+            fi
           done
 
       - name: Upload table data as artifacts
         uses: actions/upload-artifact@v2
         with:
           name: DynamoDB Data Migration
-          path: ./*_table_data.json
+          path: ./table_data
