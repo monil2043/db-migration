@@ -2,7 +2,6 @@
     "bucket_name": "usaa-connect-poc",
     "table_names": [
       "BaseStack-table8235A42E-LKLK0DLPDMBM",
-      "mig-dev03-connect-p-ssp-extensions",
       "migration-table",
       "test-migration-extension-table"
     ]

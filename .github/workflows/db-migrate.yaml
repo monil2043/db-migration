@@ -4,7 +4,7 @@ on:
       - main
 
 jobs:
-  migrate_data:
+  export_data:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,8 +18,8 @@ jobs:
 
       - name: Configure AWS credentials
         run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set aws_access_key_id ${{ secrets.SOURCE_AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.SOURCE_AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region "us-west-2"
 
       - name: Read bucket name and table names from JSON file
@@ -43,9 +43,44 @@ jobs:
         run: |
           ls -l table_data
 
-      - name: Upload table data to S3
+      - name: Upload table data as artifacts
+        uses: actions/upload-artifact@v2
+        with:
+            name: DynamoDB Data Migration
+            path: ./table_data
+
+  import_data:
+    needs: export_data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download exported data
+        uses: actions/download-artifact@v2
+        with:
+          name: DynamoDB Data Migration
+          path: exported_data
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
         run: |
-          bucket_name=$(jq -r '.bucket_name' table_names.json)
-          timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
-          s3_folder="s3://${bucket_name}/${timestamp}/"
-          aws s3 cp ./table_data "${s3_folder}" --recursive
+          npm install
+          npm install @aws-sdk/client-dynamodb @aws-sdk/credential-providers @aws-sdk/shared-ini-file-loader
+          npm install yargs
+
+      - name: Run TypeScript script
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DESTINATION_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DESTINATION_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-west-2"
+        run: |
+          for file in exported_data/*.json; do
+            table_name=$(basename "$file" .json)
+            node import_data_to_dynamodb.js --tableName "$table_name" --sourceFile "$file" --accessKeyId $AWS_ACCESS_KEY_ID --secretAccessKey $AWS_SECRET_ACCESS_KEY --region "us-west-2"
+          done
