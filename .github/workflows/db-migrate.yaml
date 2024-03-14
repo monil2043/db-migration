@@ -25,7 +25,7 @@ jobs:
       - name: Read table names from JSON file
         id: read_table_names
         run: |
-          table_names=$(jq -r '.tableNames | .[]' table_names.json)
+          table_names=$(jq -r '.table_names | .[]' table_names.json)
           echo "::set-output name=table_names::$table_names"
 
       - name: Create directory for table data
@@ -42,6 +42,10 @@ jobs:
               echo "Error: Failed to scan table $table_name"
             fi
           done
+
+      - name: List saved table data
+        run: |
+          ls -l table_data
 
       - name: Upload table data as artifacts
         uses: actions/upload-artifact@v2
