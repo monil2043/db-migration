@@ -28,7 +28,7 @@ if (argv.sourceFile) {
         const sharedConfig = await loadSharedConfigFiles();
         console.log(sharedConfig)
         console.log(sharedConfig.configFile[argv.profile])
-        const region = sharedConfig.configFile[argv.profile].region;
+        const region = "us-west-2";
         config = {
             credentials: fromIni({ profile: argv.profile }),
             region,
