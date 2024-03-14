@@ -22,7 +22,7 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region "us-west-2"
 
-      - name: Read table names from JSON file
+      - name: Read bucket name and table names from JSON file
         id: read_table_names
         run: |
           cat table_names.json
@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload table data to S3
         run: |
-          bucket_name=${{ steps.read_table_names.outputs.bucket_name }}
+          bucket_name=$(jq -r '.bucket_name' table_names.json)
           timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
           s3_folder="s3://${bucket_name}/${timestamp}/"
           aws s3 cp ./table_data "${s3_folder}" --recursive
