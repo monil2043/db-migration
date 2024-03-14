@@ -22,10 +22,13 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region "us-west-2"
 
-      - name: Read table names from JSON file
+      - name: Read bucket name and table names from JSON file
         id: read_table_names
         run: |
-          cat table_names.json
+          bucket_name=$(jq -r '.bucket_name' table_names.json)
+          table_names=$(jq -r '.table_names | .[]' table_names.json)
+          echo "::set-output name=bucket_name::$bucket_name"
+          echo "::set-output name=table_names::$table_names"
 
       - name: Create directory for table data
         run: |
@@ -33,7 +36,7 @@ jobs:
 
       - name: Scan and save table data
         run: |
-          for table_name in $(cat table_names.json | jq -r '.table_names | .[]'); do
+          for table_name in ${{ steps.read_table_names.outputs.table_names }}; do
             echo "Scanning table: $table_name"
             aws dynamodb scan --table-name "$table_name" --region "us-west-2" | jq -r '.Items' > "table_data/${table_name}.json"
             echo "Table data saved: table_data/${table_name}.json"
@@ -43,8 +46,9 @@ jobs:
         run: |
           ls -l table_data
 
-      - name: Upload table data as artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: DynamoDB Data Migration
-          path: ./table_data
+      - name: Upload table data to S3
+        run: |
+          bucket_name=${{ steps.read_table_names.outputs.bucket_name }}
+          timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+          s3_folder="s3://${bucket_name}/${timestamp}/"
+          aws s3 cp ./table_data "${s3_folder}" --recursive
