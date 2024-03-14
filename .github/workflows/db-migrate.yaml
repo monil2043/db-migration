@@ -34,7 +34,7 @@ jobs:
 
       - name: Scan and save table data
         run: |
-          for table_name in "${{ steps.read_table_names.outputs.table_names }}"; do
+          for table_name in ${{ steps.read_table_names.outputs.table_names }}; do
             echo "Scanning table: $table_name"
             if aws dynamodb scan --table-name "$table_name" --region "us-west-2" > "table_data/${table_name}.json"; then
               echo "Table data saved: table_data/${table_name}.json"
