@@ -37,9 +37,16 @@ jobs:
 
       - name: Scan and save table data
         run: |
-          while IFS= read -r table_name; do
-            aws dynamodb scan --table-name "$table_name" --region "us-west-2" > "${table_name}.json"
-          done < table_names.txt
+            while IFS= read -r table_name; do
+              echo "Scanning table: $table_name"
+              if aws dynamodb scan --table-name "$table_name" --region "us-west-2" > "${table_name}.json"; then
+                echo "Table data saved: ${table_name}.json"
+              else
+                echo "Error: Failed to scan table $table_name"
+              fi
+            done < table_names.txt
+        shell: /usr/bin/bash -e {0}
+        
 
       - name: Create artifacts
         run: |
