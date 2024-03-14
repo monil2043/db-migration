@@ -1,5 +1,3 @@
-name: DynamoDB Data Migration
-
 on:
   push:
     branches:
@@ -35,12 +33,23 @@ jobs:
           echo "Access Key ID: $AWS_ACCESS_KEY_ID"
           echo "Secret Access Key: $AWS_SECRET_ACCESS_KEY"
           echo "Session Token: $AWS_SESSION_TOKEN"
-          aws dynamodb list-tables --region "us-west-2"
-          aws dynamodb scan --table-name "mig-dev03-connect-p-ssp-extensions" --region "us-west-2" > data.json
-          cat data.json
-      
-      - name: Upload data.json as artifact
+          aws dynamodb list-tables --region "us-west-2" | jq -r '.TableNames | .[]' > table_names.txt
+
+      - name: Scan and save table data
+        run: |
+          while IFS= read -r table_name; do
+            aws dynamodb scan --table-name "$table_name" --region "us-west-2" > "${table_name}.json"
+          done < table_names.txt
+
+      - name: Create artifacts
+        run: |
+          for file in *.json; do
+            table_name=$(echo "$file" | cut -d '.' -f 1)
+            cat "$file" > "${table_name}_table_data.json"
+          done
+
+      - name: Upload table data as artifacts
         uses: actions/upload-artifact@v2
         with:
-            name: DynamoDB Data Migration
-            path: data.json
+          name: DynamoDB Data Migration
+          path: ./*_table_data.json
