@@ -38,11 +38,3 @@ jobs:
           aws dynamodb list-tables --region "us-west-2"
           aws dynamodb scan --table-name "mig-dev03-connect-p-ssp-extensions" --region "us-west-2" > data.json
           cat data.json
-
-      - name: Add table data JSON to GitHub repository
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Action"
-          git add "data.json"
-          git commit -m "Add $table_name.json to repository"
-          git push origin main
