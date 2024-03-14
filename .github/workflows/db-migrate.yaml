@@ -25,8 +25,7 @@ jobs:
       - name: Read table names from JSON file
         id: read_table_names
         run: |
-          table_names=$(jq -r '.table_names | .[]' table_names.json)
-          echo "::set-output name=table_names::$table_names"
+          cat table_names.json
 
       - name: Create directory for table data
         run: |
@@ -34,7 +33,7 @@ jobs:
 
       - name: Scan and save table data
         run: |
-          for table_name in ${{ steps.read_table_names.outputs.table_names }}; do
+          for table_name in $(cat table_names.json | jq -r '.table_names | .[]'); do
             echo "Scanning table: $table_name"
             if aws dynamodb scan --table-name "$table_name" --region "us-west-2" > "table_data/${table_name}.json"; then
               echo "Table data saved: table_data/${table_name}.json"
