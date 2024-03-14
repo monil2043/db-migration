@@ -1,0 +1,34 @@
+ [
+        {
+            "id": {
+                "S": "24"
+            },
+            "value": {
+                "S": "twentyfour"
+            }
+        },
+        {
+            "id": {
+                "S": "11"
+            },
+            "value": {
+                "S": "Eleven"
+            }
+        },
+        {
+            "id": {
+                "S": "12"
+            },
+            "value": {
+                "S": "Twelve"
+            }
+        },
+        {
+            "id": {
+                "S": "14"
+            },
+            "value": {
+                "S": "fourteen"
+            }
+        }
+    ]
