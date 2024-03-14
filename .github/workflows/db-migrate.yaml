@@ -22,13 +22,10 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region "us-west-2"
 
-      - name: Read bucket name and table names from JSON file
+      - name: Read table names from JSON file
         id: read_table_names
         run: |
-          bucket_name=$(jq -r '.bucket_name' table_names.json)
-          table_names=$(jq -r '.table_names | .[]' table_names.json)
-          echo "::set-output name=bucket_name::$bucket_name"
-          echo "::set-output name=table_names::$table_names"
+          cat table_names.json
 
       - name: Create directory for table data
         run: |
@@ -36,7 +33,7 @@ jobs:
 
       - name: Scan and save table data
         run: |
-          for table_name in ${{ steps.read_table_names.outputs.table_names }}; do
+          for table_name in $(cat table_names.json | jq -r '.table_names | .[]'); do
             echo "Scanning table: $table_name"
             aws dynamodb scan --table-name "$table_name" --region "us-west-2" | jq -r '.Items' > "table_data/${table_name}.json"
             echo "Table data saved: table_data/${table_name}.json"
