@@ -85,6 +85,7 @@ jobs:
           npm install
           npm install @aws-sdk/client-dynamodb @aws-sdk/credential-providers @aws-sdk/shared-ini-file-loader
           npm install yargs
+        working-directory: deployments/migrate-tables
 
       - name: Run TypeScript script
         env:
