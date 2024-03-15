@@ -1,7 +1,11 @@
+name: DynamoDB Data Migration
+
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      table_names:
+        description: 'Comma-separated table names'
+        required: true
 
 jobs:
   export_data:
@@ -22,22 +26,21 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.SOURCE_AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region "us-west-2"
 
-      - name: Read bucket name and table names from JSON file
-        id: read_table_names
-        run: |
-          cat table_names.json
-
       - name: Create directory for table data
         run: |
           mkdir -p table_data
 
+      - name: Save table names to file
+        run: |
+          echo "${{ github.event.inputs.table_names }}" | tr -s ',' '\n' > table_names.txt
+
       - name: Scan and save table data
         run: |
-          for table_name in $(cat table_names.json | jq -r '.table_names | .[]'); do
+          while IFS= read -r table_name; do
             echo "Scanning table: $table_name"
             aws dynamodb scan --table-name "$table_name" --region "us-west-2" | jq -r '.Items' > "table_data/${table_name}.json"
             echo "Table data saved: table_data/${table_name}.json"
-          done
+          done < table_names.txt
 
       - name: List saved table data
         run: |
@@ -46,8 +49,8 @@ jobs:
       - name: Upload table data as artifacts
         uses: actions/upload-artifact@v2
         with:
-            name: DynamoDB Data Migration
-            path: ./table_data
+          name: DynamoDB Data Migration
+          path: ./table_data
 
   import_data:
     needs: export_data
